@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io"
-	"sync"
 	"testing"
 	"time"
 )
@@ -37,28 +36,27 @@ func TestProgressWriter(t *testing.T) {
 	})
 }
 
-func TestMultipleGoroutines(t *testing.T) {
+
+func watcher (p float64) {
+		fmt.Printf("\rProgress: %3.0f%%", p*100)
+}
+
+func TestCancelWatcher(t *testing.T){
+	var wp = NewProgressWriter(uint64(100))
+	d, c := wp.Watch(watcher)
+	fmt.Fprintf(wp, "hi")
+	c<-struct{}{}
+	<-d
+}
+
+func TestWatcher(t *testing.T) {
 	var data = []byte("hello, world!  I'm a test")
 	var wp = NewProgressWriter(uint64(len(data)))
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		ticker := time.NewTicker(50 * time.Millisecond)
-		defer wg.Done()
-		defer fmt.Println()
-		for { 
-			<-ticker.C
-			progress := wp.GetProgress()
-			fmt.Printf("\rProgress: %3.0f%%", progress*100)
-			if progress == 1.0 {
-				return
-			}
-		}
-	}()
-
+	d, _ := wp.Watch(watcher)
 	for i, _ := range data {
-		wp.Write(data[i : i+1])
 		time.Sleep(20 * time.Millisecond)
+		wp.Write(data[i : i+1])
 	}
-	wg.Wait()
+	<- d
+	fmt.Printf("\n")
 }
