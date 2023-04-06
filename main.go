@@ -1,6 +1,8 @@
 package writeprogress
 
-import( "sync/atomic" )
+import (
+	"sync/atomic"
+)
 
 type ProgressWriter struct {
 	size    uint64
@@ -17,7 +19,7 @@ func (pw *ProgressWriter) GetProgress() float64 {
 	var size, written = atomic.LoadUint64(&pw.size), atomic.LoadUint64(&pw.written)
 	if size == 0 {
 		return float64(written)
-	} else if size == written { 
+	} else if size == written {
 		return 1.0
 	}
 	return float64(written) / float64(size)

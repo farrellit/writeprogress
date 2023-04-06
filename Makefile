@@ -1,6 +1,5 @@
 test:
 	go test -v -coverprofile cover.out
 
-coverage:
-	go test
+coverage: test 
 	go tool cover -html=cover.out
